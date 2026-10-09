@@ -110,3 +110,9 @@
   .prototype-nav button { flex-direction: column; gap: 3px; min-height: 56px; font-size: .72rem; position: relative; }
   .prototype-nav i { position: absolute; top: 8px; right: calc(50% - 18px); }
 }
+.backup-section { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; padding-top: 16px; border-top: 1px solid var(--line); }
+.backup-section h3 { justify-content: flex-start; gap: 6px; margin: 0; }
+.backup-section .help { margin: 0; }
+.backup-section__row { display: flex; flex-direction: column; gap: 8px; }
+.backup-section__actions { display: flex; gap: 8px; align-items: center; }
+.backup-section__actions .secondary-action { flex: 1; }

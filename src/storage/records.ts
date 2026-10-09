@@ -64,7 +64,8 @@ const toSavedExam = ({ date, examType, rs, rc, ls, lc, axialR, axialL }: SavedEx
 
 const toPriorExam = (exam: SavedExam): PriorExam => ({ ...emptyPriorExam(exam.examType), ...exam })
 
-const sameLabel = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
+/** 이름 비교(대소문자·앞뒤 공백 무시). */
+export const sameLabel = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
 
 /** 화면의 입력(현재 검사 + 이전 검사)을 저장 기록으로 만든다. 날짜가 같으면 현재 검사가 남는다. */
 export function recordFromPatient(p: Patient, existing: ChildRecord | null, now: string): ChildRecord {
@@ -189,11 +190,16 @@ export function parseStored(raw: string | null): ChildRecord[] {
   if (!raw) return []
   try {
     const data = JSON.parse(raw) as Partial<StoredData>
-    if (data?.version !== SCHEMA_VERSION || !Array.isArray(data.records)) return []
-    return data.records.filter(isChildRecord)
+    if (data?.version !== SCHEMA_VERSION) return []
+    return validRecords(data.records)
   } catch {
     return []
   }
+}
+
+/** 형식이 맞는 기록만 남긴다. 백업 파일을 가져올 때도 같은 검사를 쓴다. */
+export function validRecords(list: unknown): ChildRecord[] {
+  return Array.isArray(list) ? list.filter(isChildRecord) : []
 }
 
 export async function loadRecords(): Promise<ChildRecord[]> {

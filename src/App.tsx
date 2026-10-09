@@ -17,6 +17,7 @@ import {
   type ChildRecord,
   type SaveOutcome,
 } from './storage/records'
+import { mergeRecords } from './storage/backup'
 
 type Screen = 'input' | 'result' | 'records'
 
@@ -96,6 +97,14 @@ export default function App() {
     }
   }
 
+  /** 백업에서 가져온 기록을 합쳐 저장한다. 실패하면 예외를 그대로 올려 화면에서 안내한다. */
+  const importRecords = async (incoming: ChildRecord[]) => {
+    const { records: next, added, merged } = mergeRecords(records, incoming)
+    await persist(next)
+    const parts = [added && `새 기록 ${added}명`, merged && `기존 기록과 합침 ${merged}명`].filter(Boolean)
+    return `가져오기를 마쳤습니다 · ${parts.join(' · ')}`
+  }
+
   const linkedRecord = records.find((r) => r.id === patient.recordId) ?? null
 
   return (
@@ -128,6 +137,7 @@ export default function App() {
             onOpenLatest={(r) => { setPatient(patientFromLatestExam(r)); navigate('result') }}
             onDelete={(r) => void remove(r)}
             onDeleteAll={() => void remove('all')}
+            onImport={importRecords}
           />
         ) : (
           <MyopiaWorkspace

@@ -1,6 +1,7 @@
 import { FolderOpen, PlusCircle, ShieldCheck, Trash2, Users } from 'lucide-react'
 import { ageAt, category, signed, today } from '../math/myopia'
 import { canStartNewExam, type ChildRecord } from '../storage/records'
+import { BackupSection } from './BackupSection'
 
 interface RecordsPanelProps {
   records: ChildRecord[]
@@ -12,6 +13,7 @@ interface RecordsPanelProps {
   onOpenLatest: (record: ChildRecord) => void
   onDelete: (record: ChildRecord) => void
   onDeleteAll: () => void
+  onImport: (records: ChildRecord[]) => Promise<string>
 }
 
 const seOf = (rs: string, rc: string) => Number(rs) + Number(rc) / 2
@@ -24,6 +26,7 @@ export function RecordsPanel({
   onOpenLatest,
   onDelete,
   onDeleteAll,
+  onImport,
 }: RecordsPanelProps) {
   const sorted = [...records].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
   const now = today()
@@ -42,7 +45,7 @@ export function RecordsPanel({
 
       <p className="privacy-note">
         <ShieldCheck size={14} /> 이 휴대폰의 앱 전용 저장 공간에만 있으며 외부로 전송되지
-        않습니다. 앱을 삭제하면 기록도 함께 지워지고, 백업되지 않습니다.
+        않습니다. 앱을 삭제하면 기록도 함께 지워지므로 아래 «백업»으로 파일을 만들어 두세요.
       </p>
 
       {error && (
@@ -121,6 +124,8 @@ export function RecordsPanel({
           <Trash2 size={14} /> 저장 기록 모두 삭제
         </button>
       )}
+
+      {!loading && <BackupSection records={records} onImport={onImport} />}
     </section>
   )
 }
