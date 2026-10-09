@@ -4,6 +4,7 @@ import {
   analyze,
   category,
   emptyPatient,
+  emptyPriorExam,
   examTypeLabel,
   hasInput,
   METHOD_ASSUMED_OFFSET_D,
@@ -13,13 +14,16 @@ import {
   percentileBand,
   percentileFor,
   rankOutOf100,
+  rateLabel,
   sanitizeDecimal,
+  slopePerYear,
   signed,
   today,
   toggleSign,
   yearsBefore,
   zScoreFor,
   type Patient,
+  type PriorExam,
 } from '../myopia'
 import { koreanReference, referenceTotalN } from '../../data/koreanReference'
 
@@ -440,5 +444,134 @@ describe('입력 보조', () => {
     expect(hasInput(emptyPatient())).toBe(false)
     expect(hasInput({ ...emptyPatient(), rs: '-1' })).toBe(true)
     expect(hasInput({ ...emptyPatient(), birth: '2017-01-01' })).toBe(true)
+  })
+})
+
+describe('추적 관찰', () => {
+  const prior = (patch: Partial<PriorExam>): PriorExam => ({
+    ...emptyPriorExam('cycloplegic'),
+    rs: '-1.50',
+    rc: '-0.50',
+    ls: '-1.25',
+    lc: '-0.50',
+    ...patch,
+  })
+
+  it('slopePerYear는 두 점이면 두 점 사이 기울기, 세 점이면 최소제곱 기울기다', () => {
+    expect(slopePerYear([{ t: -1, v: -1.75 }, { t: 0, v: -2.25 }])).toBeCloseTo(-0.5, 10)
+    expect(
+      slopePerYear([{ t: -2, v: -1.0 }, { t: -1, v: -1.75 }, { t: 0, v: -2.25 }]),
+    ).toBeCloseTo(-0.625, 10)
+    expect(slopePerYear([{ t: 0, v: 1 }])).toBeNull()
+    expect(slopePerYear([{ t: 0, v: 1 }, { t: 0, v: 2 }])).toBeNull()
+  })
+
+  it('이전 검사가 없으면 followUp은 null이고 직접 입력한 변화를 쓴다', () => {
+    const { result } = analyze(patient({ progression: '-0.75' }))
+    expect(result!.followUp).toBeNull()
+    expect(result!.progression).toEqual({ value: -0.75, source: 'manual' })
+  })
+
+  it('1년 전 검사로 양안 연간 변화를 계산한다', () => {
+    // 현재 OD −2.25, OS −2.00 / 1년 전 OD −1.75, OS −1.50 → 양안 −0.50 D/년
+    const { result } = analyze(patient({ history: [prior({ date: '2025-09-01' })] }))
+    const f = result!.followUp!
+    expect(f.rateRight).toBeCloseTo(-0.5, 2)
+    expect(f.rateLeft).toBeCloseTo(-0.5, 2)
+    expect(f.spanYears).toBeCloseTo(1, 2)
+    expect(f.points.map((x) => x.current)).toEqual([false, true])
+    expect(result!.progression!.source).toBe('history')
+    expect(result!.warnings.some((w) => w.includes('이전 검사 대비'))).toBe(true)
+  })
+
+  it('이전 검사가 있으면 직접 입력한 연간 변화는 무시하고 검증하지도 않는다', () => {
+    const { result } = analyze(
+      patient({ progression: '99', history: [prior({ date: '2025-09-01', rs: '-2.00', ls: '-1.75' })] }),
+    )
+    expect(result).not.toBeNull()
+    expect(result!.progression!.source).toBe('history')
+    expect(result!.warnings.some((w) => w.includes('진행 억제'))).toBe(false)
+  })
+
+  it('입력 순서와 관계없이 날짜순으로 정렬한다', () => {
+    const { result } = analyze(
+      patient({
+        history: [
+          prior({ date: '2025-09-01' }),
+          prior({ date: '2024-09-01', rs: '-0.75', ls: '-0.75', lc: '-0.25' }),
+        ],
+      }),
+    )
+    expect(result!.followUp!.points.map((x) => x.date)).toEqual([
+      '2024-09-01',
+      '2025-09-01',
+      '2026-09-01',
+    ])
+  })
+
+  it('더 빠르게 진행하는 눈을 진행 속도로 쓴다', () => {
+    // OD 1년간 −0.25, OS 1년간 −1.00
+    const { result } = analyze(
+      patient({ history: [prior({ date: '2025-09-01', rs: '-1.75', ls: '-0.75' })] }),
+    )
+    expect(result!.followUp!.rateFastest).toBeCloseTo(result!.followUp!.rateLeft, 10)
+    expect(result!.followUp!.rateLeft).toBeCloseTo(-1.0, 2)
+  })
+
+  it('현재 검사일과 90일 미만 차이면 거른다', () => {
+    expect(analyze(patient({ history: [prior({ date: '2026-07-01' })] })).result).toBeNull()
+    expect(analyze(patient({ history: [prior({ date: '2026-06-01' })] })).result).not.toBeNull()
+  })
+
+  it('검사일이 없거나 생년월일보다 앞서면 거른다', () => {
+    expect(analyze(patient({ history: [prior({ date: '' })] })).result).toBeNull()
+    expect(analyze(patient({ history: [prior({ date: '2016-01-01' })] })).result).toBeNull()
+  })
+
+  it('굴절값이 비었거나 범위를 넘으면 거른다', () => {
+    expect(analyze(patient({ history: [prior({ date: '2025-09-01', lc: '' })] })).result).toBeNull()
+    expect(analyze(patient({ history: [prior({ date: '2025-09-01', rs: '-31' })] })).result).toBeNull()
+    expect(
+      analyze(patient({ history: [prior({ date: '2025-09-01', axialR: '41' })] })).result,
+    ).toBeNull()
+  })
+
+  it('검사 방식이 섞이면 한계를 덧붙인다', () => {
+    const same = analyze(patient({ history: [prior({ date: '2025-09-01' })] })).result!
+    expect(same.followUp!.mixedMethods).toBe(false)
+    const mixed = analyze(
+      patient({ history: [prior({ date: '2025-09-01', examType: 'auto' })] }),
+    ).result!
+    expect(mixed.followUp!.mixedMethods).toBe(true)
+    expect(mixed.caveats.some((c) => c.includes('검사 방식 차이'))).toBe(true)
+  })
+
+  it('추적 기간이 6개월 미만이면 한계를 덧붙인다', () => {
+    const { result } = analyze(patient({ history: [prior({ date: '2026-05-01' })] }))
+    expect(result!.caveats.some((c) => c.includes('추적 기간'))).toBe(true)
+  })
+
+  it('안축장 변화는 값이 있는 시점끼리만 계산한다', () => {
+    const { result } = analyze(
+      patient({
+        axialR: '24.10',
+        history: [prior({ date: '2025-09-01', axialR: '23.80', axialL: '23.70' })],
+      }),
+    )
+    expect(result!.followUp!.axialRateRight).toBeCloseTo(0.3, 2)
+    // 현재 왼눈 안축장이 없어 한 시점뿐이다.
+    expect(result!.followUp!.axialRateLeft).toBeNull()
+  })
+
+  it('rateLabel은 경고 기준(−0.50 D/년)과 맞물린다', () => {
+    expect(rateLabel(-0.5)).toBe('빠른 진행')
+    expect(rateLabel(-0.3)).toBe('근시 진행 중')
+    expect(rateLabel(-0.1)).toBe('변화 작음')
+    expect(rateLabel(0.1)).toBe('변화 작음')
+    expect(rateLabel(0.3)).toBe('원시 방향 변화')
+  })
+
+  it('hasInput은 이전 검사 줄만 추가해도 입력 시작으로 본다', () => {
+    expect(hasInput({ ...emptyPatient(), history: [emptyPriorExam()] })).toBe(true)
   })
 })

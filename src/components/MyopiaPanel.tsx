@@ -23,16 +23,18 @@ import {
   examTypeLabel,
   hasInput,
   rankOutOf100,
-  sanitizeDecimal,
+  rateLabel,
   signed,
   today,
-  toggleSign,
   type ExamType,
   type ParentMyopia,
   type Patient,
   type Sex,
   type WorseEye,
 } from '../math/myopia'
+import { DecimalInput } from './DecimalInput'
+import { FollowUpCard } from './FollowUpCard'
+import { FollowUpInput } from './FollowUpInput'
 import { GrowthChart } from './GrowthChart'
 import { Capacitor } from '@capacitor/core'
 
@@ -58,49 +60,22 @@ export function MyopiaPanel({ patient: p, onChange, onClear, onDemo, onShowResul
   /** 아무것도 입력하지 않은 첫 화면에서는 오류 목록을 보여 주지 않는다. */
   const shownErrors = hasInput(p) ? errors : []
 
-  /**
-   * 소수 입력칸. type="number"는 일부 안드로이드 키보드에서 − 키가 없고
-   * «-»만 입력한 중간 상태를 지워 버리므로 text + inputMode="decimal"을 쓰고,
-   * 부호가 필요한 칸에는 ± 버튼을 붙인다. 범위 검사는 analyze()가 한다.
-   */
   const field = (
     key: 'rs' | 'rc' | 'ls' | 'lc' | 'axialR' | 'axialL' | 'axialLimit' | 'progression',
     label: string,
     placeholder = '0.00',
     signable = false,
-  ) => {
-    const id = `myopia-${key}`
-    return (
-      <div className="clinic-field">
-        <label htmlFor={id}>{label}</label>
-        <div className="signed-input">
-          <input
-            id={id}
-            type="text"
-            inputMode="decimal"
-            autoComplete="off"
-            value={p[key]}
-            placeholder={placeholder}
-            onChange={(e) => onChange({ [key]: sanitizeDecimal(e.target.value) })}
-          />
-          {signable && (
-            <button
-              type="button"
-              className="sign-toggle"
-              aria-label={`${EYE_PREFIX[key] ?? ''}${label} 부호 바꾸기`}
-              onClick={() => {
-                onChange({ [key]: toggleSign(p[key]) })
-                // 부호를 바꾼 뒤 바로 숫자를 이어서 입력할 수 있게 한다.
-                document.getElementById(id)?.focus()
-              }}
-            >
-              ±
-            </button>
-          )}
-        </div>
-      </div>
-    )
-  }
+  ) => (
+    <DecimalInput
+      id={`myopia-${key}`}
+      label={label}
+      value={p[key]}
+      placeholder={placeholder}
+      signable={signable}
+      ariaPrefix={EYE_PREFIX[key]}
+      onChange={(value) => onChange({ [key]: value })}
+    />
+  )
 
   const rankLabel = r
     ? r.band.range
@@ -239,18 +214,36 @@ export function MyopiaPanel({ patient: p, onChange, onClear, onDemo, onShowResul
           누릅니다. SE = SPH + CYL ÷ 2
         </p>
 
+        <FollowUpInput
+          history={p.history}
+          defaultExamType={p.examType}
+          examDate={p.examDate}
+          onChange={(history) => onChange({ history })}
+        />
+
         <details className="clinic-details">
           <summary>추가 정보 · 안축장 / 가족력 / 진행 속도</summary>
           <div className="form-grid">
             {field('axialR', '오른눈 안축장 (mm)', '선택 사항')}
             {field('axialL', '왼눈 안축장 (mm)', '선택 사항')}
           </div>
-          {field('progression', '연간 SE 변화 (D/년)', '예: -0.50', true)}
-          <p className="help">근시가 0.50 D 증가했다면 −0.50을 입력합니다.</p>
-          {numericPositive(p.progression) && (
-            <p className="help field-warning" role="status">
-              양수는 원시 방향 변화를 뜻합니다. 근시가 늘었다면 ± 버튼으로 − 부호를 붙여 주세요.
+          {p.history.length > 0 ? (
+            <p className="help">
+              이전 검사가 입력되어 있어 연간 SE 변화는 자동으로 계산합니다.
             </p>
+          ) : (
+            <>
+              {field('progression', '연간 SE 변화 (D/년)', '예: -0.50', true)}
+              <p className="help">
+                근시가 0.50 D 증가했다면 −0.50을 입력합니다. 이전 검사값이 있으면 위
+                «이전 검사 추가»로 넣는 편이 정확합니다.
+              </p>
+              {numericPositive(p.progression) && (
+                <p className="help field-warning" role="status">
+                  양수는 원시 방향 변화를 뜻합니다. 근시가 늘었다면 ± 버튼으로 − 부호를 붙여 주세요.
+                </p>
+              )}
+            </>
           )}
           <label className="clinic-field">
             <span>부모 근시</span>
@@ -414,6 +407,7 @@ export function MyopiaPanel({ patient: p, onChange, onClear, onDemo, onShowResul
               <div className="chart-key">
                 <span>● 더 근시인 눈</span>
                 <span>○ 양안 평균 (위치만 표시)</span>
+                {r.followUp && <span>┄ 이전 검사부터의 변화 경로 (각 시점의 더 근시인 눈)</span>}
                 {r.band.range && (
                   <span>▯ 검사 방식 차이 {r.band.assumedOffsetD.toFixed(2)} D 가정 구간</span>
                 )}
@@ -425,6 +419,8 @@ export function MyopiaPanel({ patient: p, onChange, onClear, onDemo, onShowResul
               </p>
             </section>
 
+            {r.followUp && <FollowUpCard f={r.followUp} />}
+
             <section className="clinic-card parent-note">
               <h2>보호자께 쉽게 설명하면</h2>
               <p>
@@ -435,6 +431,14 @@ export function MyopiaPanel({ patient: p, onChange, onClear, onDemo, onShowResul
                 또래 100명을 근시가 심한 순서로 세웠을 때 대략{' '}
                 <strong>{rankLabel}번째</strong> 위치입니다.
               </p>
+              {r.followUp && (
+                <p>
+                  이전 검사와 비교하면 1년에 약{' '}
+                  <strong>{Math.abs(r.followUp.rateFastest).toFixed(2)} D</strong>씩{' '}
+                  {r.followUp.rateFastest < 0 ? '근시 쪽으로' : '원시 쪽으로'} 변하고 있습니다(더
+                  빠르게 변하는 눈 기준, {rateLabel(r.followUp.rateFastest)}).
+                </p>
+              )}
               <p>
                 이 위치는 통계 가정으로 계산한 대략적인 순서이며, 눈의 건강 상태나 치료
                 필요성을 뜻하지 않습니다. 관리 방향은 안축장·진행 속도·생활 습관을 함께 보고

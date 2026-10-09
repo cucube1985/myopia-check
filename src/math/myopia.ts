@@ -31,7 +31,24 @@ export type Patient = {
   axialLimit: string
   axialSource: string
   parents: ParentMyopia
+  /** 직접 입력한 연간 SE 변화. 이전 검사(history)가 있으면 쓰지 않는다. */
   progression: string
+  /** 이전 검사 목록(추적 관찰). 입력 순서대로 두고, 계산할 때 날짜순으로 정렬한다. */
+  history: PriorExam[]
+}
+
+/** 추적 관찰용 이전 검사 한 건. 현재 검사와 같은 형식의 문자열 입력을 받는다. */
+export type PriorExam = {
+  /** 목록 렌더링용 키. 표시하지 않는다. */
+  id: string
+  date: string
+  examType: ExamType
+  rs: string
+  rc: string
+  ls: string
+  lc: string
+  axialR: string
+  axialL: string
 }
 
 export function today() {
@@ -55,7 +72,49 @@ export const emptyPatient = (): Patient => ({
   axialSource: '',
   parents: 'unknown',
   progression: '',
+  history: [],
 })
+
+let priorExamSeq = 0
+
+export const emptyPriorExam = (examType: ExamType = 'cycloplegic'): PriorExam => ({
+  id: `prior-${++priorExamSeq}`,
+  date: '',
+  examType,
+  rs: '',
+  rc: '',
+  ls: '',
+  lc: '',
+  axialR: '',
+  axialL: '',
+})
+
+/**
+ * 이전 검사와 현재 검사 사이의 최소 간격(일).
+ * 간격이 너무 짧으면 측정 오차(±0.25 D 수준)가 연간 환산 시 몇 배로 부풀어
+ * 진행 경고가 잘못 뜬다.
+ */
+export const MIN_FOLLOW_UP_DAYS = 90
+
+const DAYS_PER_YEAR = 365.25
+const DAY_MS = 86_400_000
+
+/**
+ * 최소제곱 기울기(단위/년). 점이 2개면 두 점을 잇는 기울기와 같다.
+ * 점이 2개 미만이거나 시점이 모두 같으면 null.
+ */
+export function slopePerYear(points: { t: number; v: number }[]) {
+  if (points.length < 2) return null
+  const tMean = points.reduce((sum, p) => sum + p.t, 0) / points.length
+  const vMean = points.reduce((sum, p) => sum + p.v, 0) / points.length
+  let num = 0
+  let den = 0
+  for (const p of points) {
+    num += (p.t - tMean) * (p.v - vMean)
+    den += (p.t - tMean) ** 2
+  }
+  return den === 0 ? null : num / den
+}
 
 export function parseDate(value: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
@@ -137,8 +196,11 @@ export function toggleSign(value: string) {
 
 /** 사용자가 무언가 입력을 시작했는지. 빈 화면에서 오류 목록을 미리 보여 주지 않기 위해 쓴다. */
 export function hasInput(p: Patient) {
-  return [p.birth, p.rs, p.rc, p.ls, p.lc, p.axialR, p.axialL, p.axialLimit, p.progression].some(
-    (v) => v.trim() !== '',
+  return (
+    p.history.length > 0 ||
+    [p.birth, p.rs, p.rc, p.ls, p.lc, p.axialR, p.axialL, p.axialLimit, p.progression].some(
+      (v) => v.trim() !== '',
+    )
   )
 }
 
@@ -245,7 +307,8 @@ export function analyze(p: Patient) {
     [p.axialR, '오른눈 안축장', 15, 40],
     [p.axialL, '왼눈 안축장', 15, 40],
     [p.axialLimit, '연령별 안축장 상한', 15, 40],
-    [p.progression, '연간 변화', -10, 10],
+    // 이전 검사가 있으면 직접 입력한 연간 변화는 쓰지 않으므로 검사하지 않는다.
+    [p.history.length ? '' : p.progression, '연간 변화', -10, 10],
   ] as const) {
     if (value && (numeric(value) === null || Number(value) < low || Number(value) > high)) {
       errors.push(`${label} 입력 범위를 확인해 주세요 (${low}–${high}).`)
@@ -254,7 +317,38 @@ export function analyze(p: Patient) {
   if (p.axialLimit && !p.axialSource.trim()) {
     errors.push('안축장 상한을 사용하려면 해당 연령·성별 기준의 출처를 입력해 주세요.')
   }
-  if (errors.length || !age) return { errors, result: null }
+
+  const exam = parseDate(p.examDate)
+  const birth = parseDate(p.birth)
+  p.history.forEach((h, i) => {
+    const name = `이전 검사 ${i + 1}`
+    const date = parseDate(h.date)
+    if (!date) {
+      errors.push(`${name}: 검사일을 입력해 주세요.`)
+    } else {
+      if (birth && date < birth) errors.push(`${name}: 검사일이 생년월일보다 앞섭니다.`)
+      if (exam && (exam.getTime() - date.getTime()) / DAY_MS < MIN_FOLLOW_UP_DAYS) {
+        errors.push(
+          `${name}: 현재 검사일보다 ${MIN_FOLLOW_UP_DAYS}일(약 3개월) 이상 앞선 검사만 연간 변화 계산에 씁니다.`,
+        )
+      }
+    }
+    const hv = [h.rs, h.rc, h.ls, h.lc].map(numeric)
+    if (hv.some((v) => v === null)) {
+      errors.push(`${name}: 양쪽 눈의 SPH와 CYL을 모두 입력해 주세요.`)
+    } else if (hv.some((v, j) => Math.abs(v!) > (j % 2 ? 12 : 30))) {
+      errors.push(`${name}: 굴절값 범위를 확인해 주세요 (SPH ±30 D, CYL ±12 D).`)
+    }
+    if (
+      [h.axialR, h.axialL].some(
+        (v) => v && (numeric(v) === null || Number(v) < 15 || Number(v) > 40),
+      )
+    ) {
+      errors.push(`${name}: 안축장 입력 범위를 확인해 주세요 (15–40).`)
+    }
+  })
+
+  if (errors.length || !age || !exam) return { errors, result: null }
 
   const [rs, rc, ls, lc] = vals as number[]
   const right = rs + rc / 2
@@ -264,6 +358,13 @@ export function analyze(p: Patient) {
   const ref = koreanReference[age.years]
   const z = zScoreFor(worst, ref)
   const band = percentileBand(worst, ref, p.examType)
+  const followUp = buildFollowUp(p, exam, { right, left, worst })
+  /** 진행 속도. 이전 검사가 있으면 그것으로 계산하고, 없으면 직접 입력값을 쓴다. */
+  const progression = followUp
+    ? { value: followUp.rateFastest, source: 'history' as const }
+    : p.progression
+      ? { value: Number(p.progression), source: 'manual' as const }
+      : null
 
   const warnings: string[] = []
   if (worst <= -6) {
@@ -271,14 +372,16 @@ export function analyze(p: Patient) {
       '고도 근시 범위입니다. 안과에서 안축장과 안저를 포함한 평가 및 관리 계획을 상담하세요.',
     )
   }
-  if (p.progression && Number(p.progression) <= -0.5) {
+  if (progression && progression.value <= -0.5) {
     warnings.push(
-      '연간 근시성 변화가 0.50 D 이상입니다. 이전 검사와 검사 방식이 같은지 확인하고 진행 억제 치료를 상담하세요.',
+      progression.source === 'history'
+        ? `이전 검사 대비 연간 근시성 변화가 ${signed(progression.value)} D/년으로 0.50 D 이상입니다. 진행 억제 치료를 상담하세요.`
+        : '연간 근시성 변화가 0.50 D 이상입니다. 이전 검사와 검사 방식이 같은지 확인하고 진행 억제 치료를 상담하세요.',
     )
   }
-  if (p.progression && Number(p.progression) > 0) {
+  if (progression?.source === 'manual' && progression.value > 0) {
     warnings.push(
-      `연간 변화가 양수(${signed(Number(p.progression))} D/년, 원시 방향)로 입력되었습니다. 근시가 늘어난 경우라면 − 부호를 붙여 입력하세요.`,
+      `연간 변화가 양수(${signed(progression.value)} D/년, 원시 방향)로 입력되었습니다. 근시가 늘어난 경우라면 − 부호를 붙여 입력하세요.`,
     )
   }
   if (p.axialLimit) {
@@ -311,6 +414,16 @@ export function analyze(p: Patient) {
       '안경 처방값은 착용 적응을 고려해 조정되므로 굴절검사값과 다를 수 있습니다.',
     )
   }
+  if (followUp?.mixedMethods) {
+    caveats.push(
+      '이전 검사와 현재 검사의 방식이 달라 변화량에 검사 방식 차이(조절마비 여부 등)가 섞일 수 있습니다.',
+    )
+  }
+  if (followUp && followUp.spanYears < 0.5) {
+    caveats.push(
+      `추적 기간이 약 ${Math.round(followUp.spanYears * 12)}개월로 짧아 연간 환산값의 오차가 큽니다. 6개월 이상 간격의 검사로 다시 확인하세요.`,
+    )
+  }
   if (age.years >= 15) {
     caveats.push('만 15–18세는 하나의 통합 기준을 사용하므로 연령별 구분이 없습니다.')
   }
@@ -332,6 +445,8 @@ export function analyze(p: Patient) {
       z,
       band,
       percentile: band.point,
+      followUp,
+      progression,
       warnings,
       caveats,
       category: category(worst),
@@ -341,6 +456,104 @@ export function analyze(p: Patient) {
         | 'both',
     },
   }
+}
+
+export type FollowUpPoint = {
+  date: string
+  /** 현재 검사일 기준 시점(년). 이전 검사는 음수. */
+  t: number
+  /** 검사 당시 나이(소수). */
+  ageDecimal: number | null
+  examType: ExamType
+  right: number
+  left: number
+  worst: number
+  axialR: number | null
+  axialL: number | null
+  current: boolean
+}
+
+/**
+ * 이전 검사와 현재 검사로 연간 변화를 계산한다. 이전 검사가 없으면 null.
+ * analyze()에서 입력 검증을 통과한 뒤에만 호출하므로 값은 모두 유효하다.
+ *
+ * 점이 3개 이상이면 양 끝 두 점이 아니라 최소제곱 기울기를 쓴다.
+ * 한 번의 측정 오차가 속도를 크게 흔들지 않게 하기 위해서다.
+ */
+function buildFollowUp(
+  p: Patient,
+  exam: Date,
+  current: { right: number; left: number; worst: number },
+) {
+  if (!p.history.length) return null
+  const yearsFromExam = (date: string) =>
+    (parseDate(date)!.getTime() - exam.getTime()) / DAY_MS / DAYS_PER_YEAR
+  const optional = (v: string) => (v.trim() === '' ? null : Number(v))
+
+  const points: FollowUpPoint[] = [
+    ...p.history.map((h) => {
+      const right = Number(h.rs) + Number(h.rc) / 2
+      const left = Number(h.ls) + Number(h.lc) / 2
+      return {
+        date: h.date,
+        t: yearsFromExam(h.date),
+        ageDecimal: ageAt(p.birth, h.date)?.decimal ?? null,
+        examType: h.examType,
+        right,
+        left,
+        worst: Math.min(right, left),
+        axialR: optional(h.axialR),
+        axialL: optional(h.axialL),
+        current: false,
+      }
+    }),
+    {
+      date: p.examDate,
+      t: 0,
+      ageDecimal: ageAt(p.birth, p.examDate)?.decimal ?? null,
+      examType: p.examType,
+      ...current,
+      axialR: optional(p.axialR),
+      axialL: optional(p.axialL),
+      current: true,
+    },
+  ].sort((a, b) => a.t - b.t)
+
+  // 이전 검사는 모두 현재보다 90일 이상 앞서므로 시점이 둘 이상이고 기울기가 존재한다.
+  const rateRight = slopePerYear(points.map((x) => ({ t: x.t, v: x.right })))!
+  const rateLeft = slopePerYear(points.map((x) => ({ t: x.t, v: x.left })))!
+  /** 안축장은 그 눈의 값이 있는 시점끼리, 기간이 최소 간격 이상일 때만 계산한다. */
+  const axialRate = (key: 'axialR' | 'axialL') => {
+    const usable = points.filter((x) => x[key] !== null)
+    if (usable.length < 2) return null
+    if ((usable.at(-1)!.t - usable[0].t) * DAYS_PER_YEAR < MIN_FOLLOW_UP_DAYS) return null
+    return slopePerYear(usable.map((x) => ({ t: x.t, v: x[key]! })))
+  }
+
+  return {
+    points,
+    spanYears: -points[0].t,
+    rateRight,
+    rateLeft,
+    /** 근시 쪽으로 더 빠르게 변하는 눈의 속도. 진행 경고에 쓴다. */
+    rateFastest: Math.min(rateRight, rateLeft),
+    axialRateRight: axialRate('axialR'),
+    axialRateLeft: axialRate('axialL'),
+    mixedMethods: points.some((x) => x.examType !== p.examType),
+  }
+}
+
+export type FollowUp = NonNullable<ReturnType<typeof buildFollowUp>>
+
+/**
+ * 연간 SE 변화의 말 표현. −0.50 D/년은 analyze()의 진행 경고 기준과 같다.
+ * ±0.25 D/년 이내는 측정 오차 범위와 겹치므로 «변화 작음»으로만 표현한다.
+ */
+export function rateLabel(rate: number) {
+  if (rate >= 0.25) return '원시 방향 변화'
+  if (rate > -0.25) return '변화 작음'
+  if (rate > -0.5) return '근시 진행 중'
+  return '빠른 진행'
 }
 
 export type MyopiaResult = NonNullable<ReturnType<typeof analyze>['result']>

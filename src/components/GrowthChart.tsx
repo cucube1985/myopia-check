@@ -26,8 +26,14 @@ export function GrowthChart({ r }: { r: MyopiaResult }) {
   const top = 34
   const bottom = 286
 
-  const min = Math.min(-9, Math.floor(r.worst - 1))
-  const max = Math.max(3, Math.ceil(r.right + 1), Math.ceil(r.left + 1))
+  /** 이전 검사의 «각 시점에서 더 근시인 눈» 경로. 그래프 나이 범위(5세~) 안의 점만 그린다. */
+  const trail = (r.followUp?.points ?? []).filter(
+    (pt): pt is typeof pt & { ageDecimal: number } => pt.ageDecimal !== null && pt.ageDecimal >= AGE_MIN,
+  )
+  const trailSE = trail.map((pt) => pt.worst)
+
+  const min = Math.min(-9, Math.floor(Math.min(r.worst, ...trailSE) - 1))
+  const max = Math.max(3, Math.ceil(r.right + 1), Math.ceil(r.left + 1), ...trailSE.map((v) => Math.ceil(v + 1)))
   const x = (age: number) => left + ((age - AGE_MIN) / (AGE_MAX - AGE_MIN)) * (right - left)
   const y = (se: number) => top + ((max - se) / (max - min)) * (bottom - top)
 
@@ -45,7 +51,7 @@ export function GrowthChart({ r }: { r: MyopiaResult }) {
       role="img"
       aria-label={`연령별 참고 분포와 아이의 위치. 만 ${r.age.years}세, 더 근시인 눈 ${signed(
         r.worst,
-      )} 디옵터. 또래 100명 중 근시가 심한 쪽으로 ${rankText}. 곡선은 ${referenceYear}년 한국 표본의 연령군 평균과 표준편차에 정규분포를 가정한 참고선입니다.`}
+      )} 디옵터. 또래 100명 중 근시가 심한 쪽으로 ${rankText}. ${trail.length > 1 ? `점선은 이전 검사 ${trail.length - 1}회부터 이어진 변화 경로입니다. ` : ''}곡선은 ${referenceYear}년 한국 표본의 연령군 평균과 표준편차에 정규분포를 가정한 참고선입니다.`}
     >
       <text x={left} y={16} className="chart-caption">
         SE (D) · 아래로 갈수록 근시가 큼
@@ -114,6 +120,32 @@ export function GrowthChart({ r }: { r: MyopiaResult }) {
           opacity="0.22"
           rx="4"
         />
+      )}
+
+      {trail.length > 1 && (
+        <g className="chart-trail">
+          <polyline
+            points={trail.map((pt) => `${x(pt.ageDecimal)},${y(pt.worst)}`).join(' ')}
+            fill="none"
+            stroke="#54d5c3"
+            strokeWidth="2"
+            strokeDasharray="6 4"
+            opacity="0.75"
+          />
+          {trail
+            .filter((pt) => !pt.current)
+            .map((pt) => (
+              <circle
+                key={pt.date}
+                cx={x(pt.ageDecimal)}
+                cy={y(pt.worst)}
+                r="4.5"
+                fill="#071014"
+                stroke="#54d5c3"
+                strokeWidth="2"
+              />
+            ))}
+        </g>
       )}
 
       <line

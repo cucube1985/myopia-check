@@ -1,9 +1,20 @@
 import { MyopiaPanel } from './MyopiaPanel'
-import { emptyPatient, yearsBefore, type Patient } from '../math/myopia'
+import { emptyPatient, emptyPriorExam, yearsBefore, type Patient, type PriorExam } from '../math/myopia'
 
-/** 예시 입력. 만 9세, 양안 경도 근시, 진행 속도가 관찰되는 경우. */
+/**
+ * 예시 입력. 만 9세, 양안 경도 근시, 1년 간격 이전 검사 2회.
+ * 오른눈 SE −1.00 → −1.75 → −2.25 로 최소제곱 기울기 약 −0.62 D/년(빠른 진행).
+ */
 function demoPatient(): Patient {
   const base = emptyPatient()
+  const prior = (
+    years: number,
+    v: Pick<PriorExam, 'rs' | 'rc' | 'ls' | 'lc' | 'axialR' | 'axialL'>,
+  ): PriorExam => ({
+    ...emptyPriorExam('cycloplegic'),
+    date: yearsBefore(base.examDate, years),
+    ...v,
+  })
   return {
     ...base,
     label: '예시',
@@ -15,8 +26,11 @@ function demoPatient(): Patient {
     lc: '-0.50',
     axialR: '24.10',
     axialL: '23.95',
-    progression: '-0.62',
     parents: 'one',
+    history: [
+      prior(2, { rs: '-0.75', rc: '-0.50', ls: '-0.75', lc: '-0.25', axialR: '23.45', axialL: '23.40' }),
+      prior(1, { rs: '-1.50', rc: '-0.50', ls: '-1.25', lc: '-0.50', axialR: '23.80', axialL: '23.70' }),
+    ],
   }
 }
 

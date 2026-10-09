@@ -59,3 +59,26 @@
 .sign-toggle:active { background: #173e36; }
 .field-note { color: var(--muted-2); font-size: .72rem; line-height: 1.5; }
 .myopia-prototype .help.field-warning { color: #eab663; margin: 0; }
+.follow-up-input { display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; }
+.follow-up-input h3 { justify-content: flex-start; gap: 6px; margin: 0; }
+.follow-up-input .help { margin: 0; }
+.follow-up-input__add { align-self: flex-start; }
+.prior-exam { position: relative; display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 12px; border: 1px dashed var(--line-strong); border-radius: 8px; min-width: 0; }
+.prior-exam legend { padding: 0 6px; color: var(--text); font-size: .82rem; font-weight: 700; }
+.prior-exam__remove { position: absolute; top: -14px; right: 10px; background: var(--panel); }
+.prior-exam__eyes { display: flex; flex-direction: column; gap: 8px; }
+.prior-exam__eye { color: var(--muted); font-size: .76rem; font-weight: 700; }
+.follow-up-card .metric__small { font-size: 1.25rem !important; }
+.follow-up-table__scroll { overflow-x: auto; overscroll-behavior-x: contain; margin: 14px 0 6px; }
+.follow-up-table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: .78rem; }
+.follow-up-table th, .follow-up-table td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+.follow-up-table thead th { color: var(--muted); font-weight: 600; font-size: .72rem; }
+.follow-up-table tbody th { font-weight: 600; }
+.follow-up-table tr.is-current { background: rgba(84, 213, 195, .07); }
+.follow-up-table tr.is-current em { color: var(--accent); font-style: normal; font-size: .7rem; }
+@media (max-width: 1100px) {
+  .prior-exam .form-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .prior-exam .form-grid.prior-exam__meta { grid-template-columns: 1fr; }
+}
