@@ -35,3 +35,6 @@ android/local.properties
 artifacts/
 *.apk
 *.aab
+
+# Claude가 만든 스크린샷 등 참고 산출물
+Claude outputs/
