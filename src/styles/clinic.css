@@ -1,0 +1,738 @@
+/*
+ * 근시 평가 도구와 도구 전환 탭의 스타일.
+ *
+ * styles.css의 :root 토큰(--panel, --accent, --muted 등)을 그대로 쓴다.
+ * styles.css 다음에 불러오므로 겹치는 선택자는 이 파일이 이긴다.
+ *
+ * 진료실에서 보호자와 함께 화면을 보는 상황을 전제로, 결과 영역의 글자를
+ * 입력 영역보다 크게 둔다.
+ */
+
+/* ── 도구 전환 탭 ───────────────────────────────────────────────── */
+
+.tool-tabs {
+  display: flex;
+  gap: 6px;
+  justify-self: start;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(16, 31, 36, 0.6);
+}
+
+.tool-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 15px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.79rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.tool-tabs button:hover { color: var(--text); }
+
+.tool-tabs button.is-active {
+  background: var(--accent);
+  color: #08211f;
+}
+
+.tool-panel { display: block; }
+
+.tool-subhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0 2px;
+}
+
+.tool-subhead .dataset-chip { justify-self: auto; }
+
+/* ── 근시 도구 레이아웃 ─────────────────────────────────────────── */
+
+.clinical-layout {
+  display: grid;
+  grid-template-columns: minmax(330px, 400px) minmax(480px, 1fr);
+  gap: 16px;
+  padding: 16px 0 34px;
+  align-items: start;
+}
+
+.result-column {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  min-width: 0;
+}
+
+.clinic-card {
+  padding: 19px 21px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.input-card {
+  position: sticky;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.card-heading__actions { display: flex; gap: 4px; flex-wrap: wrap; }
+
+.eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted-2);
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clinic-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 1.04rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.clinic-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 9px;
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+
+.clinic-card h3 small {
+  color: var(--muted-2);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+}
+
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.text-button:hover { color: var(--accent); border-color: var(--line-strong); }
+.text-button.inline { padding: 2px 6px; margin-left: 5px; font-size: 0.64rem; }
+
+.pill {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  color: var(--muted);
+  font-size: 0.64rem;
+  white-space: nowrap;
+}
+
+/* ── 입력 필드 ──────────────────────────────────────────────────── */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.clinic-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+
+.clinic-field > span {
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.clinic-field input,
+.clinic-field select {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.clinic-field input::placeholder { color: var(--muted-2); font-size: 0.78rem; }
+.clinic-field input:hover,
+.clinic-field select:hover { border-color: var(--line-strong); }
+
+.age-banner {
+  padding: 9px 13px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  background: rgba(84, 213, 195, 0.04);
+  color: #cfdcdd;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.eye-entry {
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(15, 28, 33, 0.55);
+}
+
+.eye-entry h3 { justify-content: flex-start; }
+.eye-entry h3 .text-button { margin-left: auto; }
+
+.help {
+  margin: 0;
+  color: var(--muted-2);
+  font-size: 0.71rem;
+  line-height: 1.55;
+}
+
+.help strong { color: var(--muted); }
+
+.privacy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+  color: var(--muted-2);
+  font-size: 0.69rem;
+  line-height: 1.5;
+}
+
+.privacy-note svg { flex: 0 0 auto; margin-top: 1px; }
+
+.clinic-details > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  list-style: none;
+}
+
+.clinic-details > summary::-webkit-details-marker { display: none; }
+.clinic-details > summary::before { content: '＋ '; color: var(--accent); }
+.clinic-details[open] > summary::before { content: '－ '; }
+.clinic-details[open] > summary { margin-bottom: 11px; }
+
+.clinic-details > *:not(summary) { margin-bottom: 9px; }
+
+.clinic-details p {
+  margin: 0 0 9px;
+  color: var(--muted);
+  font-size: 0.73rem;
+  line-height: 1.66;
+}
+
+.clinic-details a { color: var(--accent); }
+.reference-table-note {
+  font-family: var(--mono);
+  font-size: 0.66rem !important;
+  color: var(--muted-2) !important;
+}
+
+/* ── 빈 결과 상태 ──────────────────────────────────────────────── */
+
+.empty-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 13px;
+  padding: 54px 30px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty-result svg { color: var(--accent-deep); }
+.empty-result h2 { display: block; font-size: 1.16rem; line-height: 1.5; }
+.empty-result p { margin: 0; font-size: 0.8rem; line-height: 1.6; color: var(--muted-2); }
+
+.empty-result ul {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  max-width: 420px;
+}
+
+.empty-result li {
+  padding: 8px 12px;
+  border-left: 2px solid var(--amber);
+  background: rgba(234, 182, 99, 0.07);
+  color: #dfd4c0;
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+
+.primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 21px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #08211f;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-action:hover { background: #6ae0cf; }
+
+/* ── 결과 헤드라인 ─────────────────────────────────────────────── */
+
+.result-hero {
+  display: grid;
+  grid-template-columns: 1fr minmax(210px, 0.72fr);
+  gap: 20px;
+  align-items: center;
+}
+
+.result-hero h2 {
+  display: block;
+  margin: 0 0 4px;
+  font-size: 1.32rem;
+  font-weight: 800;
+}
+
+.big-reading {
+  font-family: var(--mono);
+  font-size: 2.85rem;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.big-reading small { font-size: 1.1rem; color: var(--muted); }
+
+.result-hero > div > p {
+  margin: 9px 0 0;
+  color: var(--muted-2);
+  font-size: 0.68rem;
+  font-family: var(--mono);
+}
+
+.percentile-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 15px 17px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  background: rgba(84, 213, 195, 0.05);
+  text-align: center;
+}
+
+.percentile-result > span:first-child {
+  color: var(--muted);
+  font-size: 0.71rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.percentile-result strong {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 3px;
+  font-family: var(--mono);
+  font-size: 1.86rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.15;
+}
+
+.percentile-result strong em {
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.percentile-result__meta {
+  color: var(--muted-2);
+  font-size: 0.65rem;
+  line-height: 1.45;
+}
+
+.percentile-result small {
+  color: var(--muted-2);
+  font-size: 0.63rem;
+  line-height: 1.4;
+}
+
+/* ── 해석 한계 안내 ────────────────────────────────────────────── */
+
+.caveat-strip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 16px;
+  border: 1px solid rgba(234, 182, 99, 0.3);
+  border-radius: 11px;
+  background: rgba(234, 182, 99, 0.06);
+}
+
+.caveat-strip svg { flex: 0 0 auto; margin-top: 2px; color: var(--amber); }
+
+.caveat-strip ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.caveat-strip li { color: #e3d6bf; font-size: 0.75rem; line-height: 1.58; }
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 16px;
+  border-radius: 11px;
+  font-size: 0.79rem;
+  line-height: 1.58;
+}
+
+.notice svg { flex: 0 0 auto; margin-top: 2px; }
+
+.notice.warning {
+  border: 1px solid rgba(239, 113, 94, 0.34);
+  background: rgba(239, 113, 94, 0.08);
+  color: #f3cec6;
+}
+
+.notice.warning svg { color: var(--red); }
+
+/* ── 지표 카드 ─────────────────────────────────────────────────── */
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 9px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.metric > span {
+  color: var(--muted-2);
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.metric strong {
+  font-family: var(--mono);
+  font-size: 1.14rem;
+  font-weight: 600;
+}
+
+.metric strong small { font-size: 0.68rem; color: var(--muted); }
+.metric > small { color: var(--muted-2); font-size: 0.63rem; line-height: 1.4; }
+
+/* ── 성장 그래프 ───────────────────────────────────────────────── */
+
+.growth-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 14px 0 6px;
+}
+
+.growth-chart text {
+  fill: var(--muted-2);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.growth-chart .chart-caption { fill: var(--muted); font-size: 10px; }
+.growth-chart .chart-note { fill: var(--muted-2); font-size: 9.5px; }
+.growth-chart .chart-grid { stroke: rgba(157, 188, 194, 0.13); stroke-width: 1; }
+
+.chart-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 9px;
+  color: var(--muted-2);
+  font-size: 0.68rem;
+}
+
+/* ── 보호자 설명 ───────────────────────────────────────────────── */
+
+.parent-note h2 { display: block; margin-bottom: 11px; }
+
+.parent-note p {
+  margin: 0 0 11px;
+  color: #d3dedf;
+  font-size: 0.88rem;
+  line-height: 1.78;
+}
+
+.parent-note strong { color: var(--accent); font-weight: 700; }
+
+/* ── 3D 실패 대체 화면 ─────────────────────────────────────────── */
+
+.error-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  height: 100%;
+  min-height: 300px;
+  padding: 30px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.error-fallback svg { color: var(--amber); }
+.error-fallback strong { font-size: 0.94rem; color: var(--text); }
+.error-fallback p { margin: 0; max-width: 420px; font-size: 0.76rem; line-height: 1.6; }
+
+.error-fallback code {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--muted-2);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.error-fallback button {
+  padding: 8px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: transparent;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── 각막 도구 보강 ────────────────────────────────────────────── */
+
+.eye-switch {
+  display: flex;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.eye-switch legend {
+  padding: 0 0 6px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.eye-switch button {
+  flex: 1;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.eye-switch button.is-active {
+  border-color: var(--accent-deep);
+  background: rgba(84, 213, 195, 0.12);
+  color: var(--accent);
+}
+
+.field-note {
+  margin: 0;
+  color: var(--muted-2);
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.field-note strong { color: var(--muted); }
+.mono-value { font-size: 0.7rem !important; }
+
+/* ── 반응형 ────────────────────────────────────────────────────── */
+
+@media (max-width: 1100px) {
+  .clinical-layout { grid-template-columns: 1fr; }
+  .input-card { position: static; }
+  .result-hero { grid-template-columns: 1fr; }
+  .metric-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 820px) {
+  .tool-tabs button { padding: 7px 11px; font-size: 0.74rem; }
+  .tool-subhead { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .big-reading { font-size: 2.35rem; }
+}
+
+@media (max-width: 520px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .metric-grid { grid-template-columns: 1fr; }
+  .clinic-card { padding: 15px 14px; }
+  .tool-tabs button span { display: none; }
+}
+
+/* ── 동작 감소 설정 존중 ───────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── 인쇄 ──────────────────────────────────────────────────────── */
+
+.print-header { display: none; }
+
+@media print {
+  @page { margin: 14mm; }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  body { background-image: none !important; }
+
+  .app-shell { width: 100% !important; padding: 0 !important; }
+
+  /* 입력 폼·탭·각막 도구는 인쇄하지 않는다 */
+  .app-header,
+  .input-card,
+  .tool-tabs,
+  .tool-subhead,
+  .no-print,
+  .empty-result,
+  .clinic-details {
+    display: none !important;
+  }
+
+  .clinical-layout {
+    display: block;
+    padding: 0;
+  }
+
+  .result-column { display: block; }
+
+  .print-header {
+    display: block;
+    margin-bottom: 10mm;
+    padding-bottom: 4mm;
+    border-bottom: 1.5pt solid #111;
+  }
+
+  .print-header strong { display: block; font-size: 15pt; font-weight: 800; }
+  .print-header span { font-size: 9.5pt; color: #444; }
+
+  .clinic-card,
+  .metric,
+  .caveat-strip,
+  .notice {
+    page-break-inside: avoid;
+    margin-bottom: 5mm;
+    border: 0.8pt solid #bbb !important;
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  .metric-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 3mm;
+  }
+
+  .result-hero { display: grid !important; grid-template-columns: 1fr 1fr !important; }
+
+  .big-reading,
+  .parent-note strong,
+  .percentile-result strong,
+  .metric strong {
+    color: #111 !important;
+  }
+
+  .eyebrow,
+  .help,
+  .percentile-result span,
+  .percentile-result small,
+  .percentile-result__meta,
+  .metric > span,
+  .metric > small,
+  .chart-key {
+    color: #555 !important;
+  }
+
+  .caveat-strip li,
+  .notice.warning,
+  .parent-note p {
+    color: #111 !important;
+  }
+
+  .caveat-strip svg,
+  .notice svg { display: none !important; }
+
+  .growth-chart text { fill: #333 !important; }
+  .growth-chart .chart-grid { stroke: #ddd !important; }
+  .growth-chart circle[fill='#071014'] { fill: #fff !important; stroke: #333 !important; }
+}

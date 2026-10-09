@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">우리 아이 근시 테스트</string>
+    <string name="title_activity_main">우리 아이 근시 테스트</string>
+    <string name="package_name">kr.myopia.prototype</string>
+    <string name="custom_url_scheme">kr.myopia.prototype</string>
+</resources>

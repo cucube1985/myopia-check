@@ -1,0 +1,61 @@
+.myopia-prototype { max-width: 1300px; padding-bottom: 105px; --muted: #a0b5ba; --muted-2: #8b9fa6; }
+.prototype-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 22px 0; border-bottom: 1px solid var(--line); }
+.prototype-header .brand strong { font-size: 1.05rem; letter-spacing: -.02em; }
+.prototype-header .brand div > span { font-size: .73rem; }
+.prototype-badge { color: var(--accent); border: 1px solid #27594f; background: #102f2b; font-size: .65rem; padding: 7px 10px; border-radius: 20px; white-space: nowrap; }
+.prototype-intro { padding: 26px 0 8px; }
+.prototype-intro h1 { font-size: clamp(1.4rem, 4.5vw, 2rem); line-height: 1.4; }
+.prototype-intro p { color: var(--muted); font-size: .87rem; line-height: 1.7; margin: 9px 0 0; }
+.prototype-disclaimer { display: flex; gap: 10px; align-items: flex-start; border-top: 1px solid var(--line); padding: 20px 2px; color: var(--muted); }
+.prototype-disclaimer svg { flex-shrink: 0; margin-top: 3px; }
+.prototype-disclaimer p { font-size: .8rem; line-height: 1.8; margin: 0; }
+.prototype-nav { display: none; }
+.myopia-prototype .clinic-field input, .myopia-prototype .clinic-field select { min-height: 48px; font-size: 16px; }
+.myopia-prototype .clinic-field input { padding-right: 10px; }
+.myopia-prototype .clinic-field > span { font-size: .81rem; }
+.myopia-prototype .text-button { min-height: 38px; }
+.myopia-prototype .help, .myopia-prototype .privacy-note { font-size: .78rem; line-height: 1.75; }
+.myopia-prototype .clinic-details summary { min-height: 44px; line-height: 1.6; }
+.myopia-prototype .primary-action { min-height: 48px; }
+.myopia-prototype button:disabled { opacity: .5; cursor: default; }
+.myopia-prototype .result-hero h2 { font-size: 1.5rem; }
+.myopia-prototype .big-reading { font-size: 3.4rem; }
+.myopia-prototype .percentile-result > small { display: block; line-height: 1.65; }
+.myopia-prototype .metric strong { font-size: 1.9rem; }
+.input-errors { font-size: .75rem; line-height: 1.6; color: var(--muted); padding-left: 20px; margin: 0; }
+.myopia-prototype .growth-chart { width: 100%; min-width: 0; }
+.myopia-prototype .clinic-card { min-width: 0; }
+.myopia-prototype .clinic-details p, .myopia-prototype .parent-note p { overflow-wrap: anywhere; }
+.myopia-prototype .print-header { display: none; }
+.myopia-prototype .chart-zoom__scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+.myopia-prototype .chart-zoom__scroll .growth-chart { width: 820px; max-width: none; }
+@media (max-width: 1100px) {
+  .myopia-prototype { width: min(700px, calc(100% - 28px)); }
+  .myopia-prototype .clinical-layout { grid-template-columns: minmax(0, 1fr); }
+  .myopia-prototype[data-screen='input'] .result-column { display: none; }
+  .myopia-prototype[data-screen='result'] .input-card { display: none; }
+  .prototype-nav { display: flex; position: fixed; z-index: 10; bottom: 0; left: 0; right: 0; padding: 8px 14px max(8px, env(safe-area-inset-bottom)); background: #0b171cf5; border-top: 1px solid #294046; gap: 10px; }
+  .prototype-nav button { flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 52px; border: 0; border-radius: 12px; color: var(--muted); background: transparent; font-size: .85rem; font-weight: 700; }
+  .prototype-nav button[aria-current='page'] { background: #173e36; color: #78ebd6; }
+  .prototype-nav i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .myopia-prototype .metric-grid { grid-template-columns: 1fr 1fr; }
+  .myopia-prototype .eye-entry .form-grid { grid-template-columns: 1fr 1fr; }
+  .myopia-prototype .input-card { gap: 18px; }
+}
+@media (max-width: 380px) {
+  .myopia-prototype .metric strong { font-size: 1.55rem; }
+  .myopia-prototype .card-heading { flex-wrap: wrap; }
+  .prototype-badge { font-size: .58rem; padding: 6px; }
+}
+@media print {
+  .prototype-header, .prototype-intro, .prototype-nav, .result-jump { display: none !important; }
+  .myopia-prototype .result-column, .myopia-prototype .print-header { display: block !important; }
+  .myopia-prototype .input-card { display: none !important; }
+}
+.myopia-prototype .clinic-field > label { color: var(--muted); font-size: .81rem; font-weight: 600; }
+.signed-input { display: flex; gap: 6px; min-width: 0; }
+.signed-input input { flex: 1; min-width: 0; }
+.sign-toggle { flex: 0 0 44px; min-height: 48px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-soft); color: var(--accent); font-size: 1.15rem; font-weight: 700; cursor: pointer; }
+.sign-toggle:active { background: #173e36; }
+.field-note { color: var(--muted-2); font-size: .72rem; line-height: 1.5; }
+.myopia-prototype .help.field-warning { color: #eab663; margin: 0; }

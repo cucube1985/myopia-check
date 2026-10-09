@@ -1,0 +1,37 @@
+# 의존성
+node_modules/
+
+# 빌드 산출물
+dist/
+coverage/
+
+# TypeScript 증분 빌드 캐시 (tsc -b가 생성)
+*.tsbuildinfo
+
+# tsc -b가 vite.config.ts 옆에 내보내는 파일
+vite.config.js
+vite.config.d.ts
+
+# 로컬 로그
+*.log
+.vite.log
+.vite.err.log
+
+# 편집기 / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 환경변수
+.env
+.env.local
+.env.*.local
+
+# Android local builds and SDK settings
+android/.gradle/
+android/**/build/
+android/local.properties
+artifacts/
+*.apk
+*.aab
