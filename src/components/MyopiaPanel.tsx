@@ -3,6 +3,7 @@ import {
   ChartNoAxesCombined,
   Copy,
   FlaskConical,
+  FolderHeart,
   Info,
   Printer,
   ShieldCheck,
@@ -36,10 +37,15 @@ import { DecimalInput } from './DecimalInput'
 import { FollowUpCard } from './FollowUpCard'
 import { FollowUpInput } from './FollowUpInput'
 import { GrowthChart } from './GrowthChart'
+import { SaveButton } from './SaveButton'
+import type { SaveOutcome } from '../storage/records'
 import { Capacitor } from '@capacitor/core'
 
 interface MyopiaPanelProps {
   patient: Patient
+  /** 지금 입력이 연결된 저장 기록의 이름. 연결이 없으면 null. */
+  linkedRecordLabel: string | null
+  onSave: () => Promise<SaveOutcome>
   onChange: (patch: Partial<Patient>) => void
   onClear: () => void
   onDemo: () => void
@@ -54,7 +60,15 @@ const numericPositive = (value: string) => value.trim() !== '' && Number(value) 
 const worseEyeLabel = (worseEye: WorseEye) =>
   worseEye === 'both' ? '양안 동일' : worseEye === 'OD' ? '오른눈 OD' : '왼눈 OS'
 
-export function MyopiaPanel({ patient: p, onChange, onClear, onDemo, onShowResult }: MyopiaPanelProps) {
+export function MyopiaPanel({
+  patient: p,
+  linkedRecordLabel,
+  onChange,
+  onClear,
+  onDemo,
+  onSave,
+  onShowResult,
+}: MyopiaPanelProps) {
   const { result: r, errors } = analyze(p)
   const age = ageAt(p.birth, p.examDate)
   /** 아무것도 입력하지 않은 첫 화면에서는 오류 목록을 보여 주지 않는다. */
@@ -109,12 +123,19 @@ export function MyopiaPanel({ patient: p, onChange, onClear, onDemo, onShowResul
           </div>
         </div>
 
+        {linkedRecordLabel && (
+          <p className="record-link-banner">
+            <FolderHeart size={14} /> 저장 기록 «{linkedRecordLabel}»에서 불러왔습니다. 저장하면
+            이 기록을 업데이트합니다.
+          </p>
+        )}
+
         <label className="clinic-field">
-          <span>검사 식별 (선택)</span>
+          <span>아이 이름·차트번호 (저장할 때 필요)</span>
           <input
             value={p.label}
             maxLength={40}
-            placeholder="차트번호 등 · 저장되지 않습니다"
+            placeholder="예: 김OO, 차트 1234 · 결과 화면과 저장 목록에 표시"
             onChange={(e) => onChange({ label: e.target.value })}
           />
         </label>
@@ -275,12 +296,14 @@ export function MyopiaPanel({ patient: p, onChange, onClear, onDemo, onShowResul
         </details>
 
         <p className="privacy-note">
-          <ShieldCheck size={14} /> 입력값은 이 화면에서만 계산되며 저장·전송되지 않습니다.
-          화면을 새로 고치거나 «새 환자»를 누르면 모두 지워집니다.
+          <ShieldCheck size={14} /> 입력값은 외부로 전송되지 않습니다. «이 기기에 저장»을 누를
+          때만 이 휴대폰의 앱 전용 공간에 저장되며, 저장하지 않은 입력은 앱을 닫거나 «새
+          환자»를 누르면 지워집니다.
         </p>
         <button type="button" className="primary-action result-jump" disabled={!r} onClick={onShowResult}>
           {r ? '근시 분석 결과 보기' : '생년월일과 양안 검사값을 입력하세요'}
         </button>
+        {hasInput(p) && <SaveButton onSave={onSave} linked={linkedRecordLabel !== null} />}
         {!r && shownErrors.length > 0 && (
           <ul className="input-errors">{shownErrors.map(error => <li key={error}>{error}</li>)}</ul>
         )}
@@ -458,6 +481,11 @@ export function MyopiaPanel({ patient: p, onChange, onClear, onDemo, onShowResul
                     : ' · 연령별 상한 미지정으로 길이 판정 보류'}
                 </p>
               )}
+              <SaveButton
+                className="no-print"
+                onSave={onSave}
+                linked={linkedRecordLabel !== null}
+              />
               {!Capacitor.isNativePlatform() && <button type="button" className="primary-action no-print" onClick={() => window.print()}>
                 <Printer size={17} /> 이 결과 인쇄
               </button>}

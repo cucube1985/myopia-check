@@ -35,6 +35,8 @@ export type Patient = {
   progression: string
   /** 이전 검사 목록(추적 관찰). 입력 순서대로 두고, 계산할 때 날짜순으로 정렬한다. */
   history: PriorExam[]
+  /** 저장 기록에서 불러온 경우 그 기록의 id. 저장하면 이 기록을 덮어쓴다. 계산에는 쓰지 않는다. */
+  recordId: string | null
 }
 
 /** 추적 관찰용 이전 검사 한 건. 현재 검사와 같은 형식의 문자열 입력을 받는다. */
@@ -73,6 +75,7 @@ export const emptyPatient = (): Patient => ({
   parents: 'unknown',
   progression: '',
   history: [],
+  recordId: null,
 })
 
 let priorExamSeq = 0

@@ -1,3 +1,4 @@
+import type { SaveOutcome } from '../storage/records'
 import { MyopiaPanel } from './MyopiaPanel'
 import { emptyPatient, emptyPriorExam, yearsBefore, type Patient, type PriorExam } from '../math/myopia'
 
@@ -37,19 +38,31 @@ function demoPatient(): Patient {
 interface MyopiaWorkspaceProps {
   patient: Patient
   onPatientChange: (next: Patient) => void
+  /** 지금 입력이 연결된 저장 기록의 이름. 연결이 없으면 null. */
+  linkedRecordLabel: string | null
+  onSave: () => Promise<SaveOutcome>
   onShowResult: () => void
   onShowInput: () => void
 }
 
 /**
  * 환자 입력 상태는 App이 보관한다.
- * 진료 중에 각막 탭을 잠깐 열었다 돌아와도 입력값이 남아 있어야 하기 때문이다.
+ * 저장 기록 화면을 오가도 입력값이 남아 있어야 하기 때문이다.
  * 값을 비우는 것은 «새 환자» 버튼으로만 한다.
  */
-export function MyopiaWorkspace({ patient, onPatientChange, onShowResult, onShowInput }: MyopiaWorkspaceProps) {
+export function MyopiaWorkspace({
+  patient,
+  linkedRecordLabel,
+  onPatientChange,
+  onSave,
+  onShowResult,
+  onShowInput,
+}: MyopiaWorkspaceProps) {
   return (
     <MyopiaPanel
       patient={patient}
+      linkedRecordLabel={linkedRecordLabel}
+      onSave={onSave}
       onChange={(patch) => onPatientChange({ ...patient, ...patch })}
       onClear={() => { onPatientChange(emptyPatient()); onShowInput() }}
       onDemo={() => { onPatientChange(demoPatient()); onShowResult() }}

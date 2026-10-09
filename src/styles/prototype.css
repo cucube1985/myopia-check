@@ -9,7 +9,6 @@
 .prototype-disclaimer { display: flex; gap: 10px; align-items: flex-start; border-top: 1px solid var(--line); padding: 20px 2px; color: var(--muted); }
 .prototype-disclaimer svg { flex-shrink: 0; margin-top: 3px; }
 .prototype-disclaimer p { font-size: .8rem; line-height: 1.8; margin: 0; }
-.prototype-nav { display: none; }
 .myopia-prototype .clinic-field input, .myopia-prototype .clinic-field select { min-height: 48px; font-size: 16px; }
 .myopia-prototype .clinic-field input { padding-right: 10px; }
 .myopia-prototype .clinic-field > span { font-size: .81rem; }
@@ -29,15 +28,16 @@
 .myopia-prototype .print-header { display: none; }
 .myopia-prototype .chart-zoom__scroll { overflow-x: auto; overscroll-behavior-x: contain; }
 .myopia-prototype .chart-zoom__scroll .growth-chart { width: 820px; max-width: none; }
+/* 하단 탭. 넓은 화면에서도 «저장 기록» 화면으로 가야 하므로 항상 보인다. */
+.prototype-nav { display: flex; position: fixed; z-index: 10; bottom: 0; left: 0; right: 0; padding: 8px 14px max(8px, env(safe-area-inset-bottom)); background: #0b171cf5; border-top: 1px solid #294046; gap: 10px; }
+.prototype-nav button { flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 52px; border: 0; border-radius: 12px; color: var(--muted); background: transparent; font-size: .85rem; font-weight: 700; }
+.prototype-nav button[aria-current='page'] { background: #173e36; color: #78ebd6; }
+.prototype-nav i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
 @media (max-width: 1100px) {
   .myopia-prototype { width: min(700px, calc(100% - 28px)); }
   .myopia-prototype .clinical-layout { grid-template-columns: minmax(0, 1fr); }
   .myopia-prototype[data-screen='input'] .result-column { display: none; }
   .myopia-prototype[data-screen='result'] .input-card { display: none; }
-  .prototype-nav { display: flex; position: fixed; z-index: 10; bottom: 0; left: 0; right: 0; padding: 8px 14px max(8px, env(safe-area-inset-bottom)); background: #0b171cf5; border-top: 1px solid #294046; gap: 10px; }
-  .prototype-nav button { flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 52px; border: 0; border-radius: 12px; color: var(--muted); background: transparent; font-size: .85rem; font-weight: 700; }
-  .prototype-nav button[aria-current='page'] { background: #173e36; color: #78ebd6; }
-  .prototype-nav i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
   .myopia-prototype .metric-grid { grid-template-columns: 1fr 1fr; }
   .myopia-prototype .eye-entry .form-grid { grid-template-columns: 1fr 1fr; }
   .myopia-prototype .input-card { gap: 18px; }
@@ -81,4 +81,32 @@
 }
 @media (max-width: 520px) {
   .prior-exam .form-grid.prior-exam__meta { grid-template-columns: 1fr; }
+}
+.secondary-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; padding: 0 18px; border: 1px solid #27594f; border-radius: 9px; background: #102f2b; color: var(--accent); font-size: .86rem; font-weight: 700; cursor: pointer; }
+.secondary-action:disabled { opacity: .5; }
+.save-action { display: flex; flex-direction: column; gap: 6px; }
+.parent-note .save-action { margin: 6px 0 10px; }
+.save-action__message { margin: 0; color: var(--accent); font-size: .78rem; line-height: 1.6; }
+.save-action__message.is-error { color: var(--amber); }
+.record-link-banner { display: flex; gap: 7px; align-items: flex-start; margin: 0; padding: 9px 12px; border: 1px solid #27594f; border-radius: 8px; background: #102f2b; color: #b6efe5; font-size: .78rem; line-height: 1.6; }
+.record-link-banner svg { flex: 0 0 auto; margin-top: 4px; }
+.records-panel { display: flex; flex-direction: column; gap: 14px; }
+.records-panel .notice { margin: 0; }
+.records-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 30px 10px; color: var(--muted); text-align: center; font-size: .85rem; line-height: 1.7; }
+.records-empty svg { color: var(--accent-deep); }
+.records-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.record-item { display: flex; flex-direction: column; gap: 6px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-soft); }
+.record-item__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.record-item__head strong { font-size: 1rem; }
+.record-item__head span, .record-item__meta { color: var(--muted); font-size: .78rem; }
+.record-item__meta { margin: 0; }
+.record-item__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.record-item__delete { margin-left: auto; }
+.record-item .help { margin: 0; }
+.records-panel__clear { align-self: flex-start; }
+.myopia-prototype[data-screen='records'] .records-panel { max-width: 700px; margin: 0 auto; }
+@media (max-width: 480px) {
+  .prototype-nav { gap: 6px; padding-left: 8px; padding-right: 8px; }
+  .prototype-nav button { flex-direction: column; gap: 3px; min-height: 56px; font-size: .72rem; position: relative; }
+  .prototype-nav i { position: absolute; top: 8px; right: calc(50% - 18px); }
 }
