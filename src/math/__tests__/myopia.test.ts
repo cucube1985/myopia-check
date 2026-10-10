@@ -25,7 +25,7 @@ import {
   type Patient,
   type PriorExam,
 } from '../myopia'
-import { koreanReference, referenceTotalN } from '../../data/koreanReference'
+import { koreanReference, referencePooled, referenceTotalN } from '../../data/koreanReference'
 
 describe('parseDate', () => {
   it('형식이 맞지 않으면 null', () => {
@@ -161,6 +161,42 @@ describe('참고 분포', () => {
         .filter(([age]) => Number(age) <= 15)
         .reduce((sum, [, ref]) => sum + ref.n, 0)
     expect(counted).toBe(referenceTotalN)
+  })
+
+  it('연령별 값이 보충표 1(More myopic eye, KNHANES 열)과 한 줄씩 같다', () => {
+    // 원문: Sci Rep 2026, 41598_2026_53576_MOESM5_ESM.docx. 행 순서: 나이, n, SE mean, SE Std
+    const supplementaryTable1 = [
+      [5, 99, -0.25, 0.88],
+      [6, 107, -0.17, 1.11],
+      [7, 107, -0.57, 1.11],
+      [8, 107, -0.85, 1.34],
+      [9, 99, -1.23, 1.49],
+      [10, 82, -1.71, 1.78],
+      [11, 89, -2.36, 2.07],
+      [12, 75, -2.54, 2.08],
+      [13, 93, -3.09, 2.58],
+      [14, 82, -2.91, 2.13],
+      [15, 284, -3.45, 2.47], // 보충표의 «15» 행 = 15–18세 통합
+    ]
+    for (const [age, n, mean, sd] of supplementaryTable1) {
+      expect(koreanReference[age], `${age}세`).toMatchObject({ n, mean, sd })
+    }
+  })
+
+  it('연령별 표를 합치면 논문 Table 1의 전체 평균·SD(−1.93 ± 2.27)와 같다', () => {
+    // 15–18세 통합 행은 한 번만 센다.
+    const groups = Object.entries(koreanReference)
+      .filter(([age]) => Number(age) <= 15)
+      .map(([, ref]) => ref)
+    const n = groups.reduce((sum, g) => sum + g.n, 0)
+    const mean = groups.reduce((sum, g) => sum + g.mean * g.n, 0) / n
+    // 전체 분산 = 집단 내 제곱합 + 집단 간 제곱합 (표본 SD)
+    const ss = groups.reduce((sum, g) => sum + (g.n - 1) * g.sd ** 2 + g.n * (g.mean - mean) ** 2, 0)
+    const sd = Math.sqrt(ss / (n - 1))
+    expect(n).toBe(referencePooled.n)
+    // 표의 값이 소수 둘째 자리로 반올림되어 있으므로 반올림 오차만 허용한다.
+    expect(mean).toBeCloseTo(referencePooled.mean, 2)
+    expect(sd).toBeCloseTo(referencePooled.sd, 2)
   })
 })
 

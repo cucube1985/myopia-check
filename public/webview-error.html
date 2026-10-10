@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebView 업데이트 필요</title>
+<!--
+  Capacitor가 시스템 WebView 버전이 capacitor.config.ts의 android.minWebViewVersion보다
+  낮을 때 보여 주는 페이지(server.errorPath). 오래된 WebView에서도 열려야 하므로
+  스크립트와 최신 CSS 문법을 쓰지 않는다.
+-->
+<style>
+  body { margin: 0; padding: 32px 20px; background: #071014; color: #e9f0f1; font-family: sans-serif; line-height: 1.7; }
+  h1 { font-size: 20px; margin: 0 0 14px; color: #54d5c3; }
+  p, li { font-size: 15px; color: #c3d1d4; }
+  ol { padding-left: 20px; }
+  strong { color: #e9f0f1; }
+  .note { margin-top: 24px; font-size: 13px; color: #8b9fa6; }
+</style>
+</head>
+<body>
+  <h1>앱을 열려면 업데이트가 필요합니다</h1>
+  <p>이 휴대폰의 <strong>Android System WebView</strong>가 오래되어 앱 화면을 표시할 수 없습니다.</p>
+  <ol>
+    <li>Play 스토어에서 <strong>Android System WebView</strong>를 검색합니다.</li>
+    <li><strong>업데이트</strong>를 누릅니다. (Chrome도 함께 업데이트하면 좋습니다.)</li>
+    <li>이 앱을 완전히 닫았다가 다시 엽니다.</li>
+  </ol>
+  <p class="note">저장한 기록은 지워지지 않습니다. 업데이트 후에도 이 화면이 보이면 휴대폰의 Android 버전이 너무 오래된 것일 수 있습니다.</p>
+</body>
+</html>

@@ -9,7 +9,7 @@
 3. **우리 아이 근시 테스트** 앱을 실행합니다.
 4. **예시**를 눌러 결과를 보고, **검사값 입력**에서 실제 입력 동작을 확인합니다.
 
-Google Play에 등록하거나 개발자 계정을 만들 필요가 없는 로컬 테스트용 디버그 서명 APK입니다. Android 7.0(API 24) 이상이 설치 대상이며, 최신 Android System WebView를 권장합니다. 실제 휴대폰 모델별 동작은 별도 확인이 필요합니다. 보안 검사 자체를 끄지는 마세요.
+Google Play에 등록하거나 개발자 계정을 만들 필요가 없는 로컬 테스트용 디버그 서명 APK입니다. Android 7.0(API 24) 이상에 설치되지만, 실제 실행에는 **Android System WebView 87 이상**이 필요합니다(Vite 기본 빌드 대상 chrome87). WebView가 이보다 낮으면 흰 화면 대신 Play 스토어에서 WebView를 업데이트하라는 안내 화면(`public/webview-error.html`)이 뜹니다. 실제 휴대폰 모델별 동작은 별도 확인이 필요합니다. 보안 검사 자체를 끄지는 마세요.
 
 ## 확인할 기능
 
@@ -34,7 +34,7 @@ Google Play에 등록하거나 개발자 계정을 만들 필요가 없는 로�
 
 ## 다시 빌드
 
-Windows, Node.js 22 이상, JDK 21 이상, Android SDK가 필요합니다. 기본 경로가 다르면 `JAVA_HOME`, `ANDROID_HOME`을 지정하세요.
+Windows, Node.js 22 이상, JDK 21 이상, Android SDK가 필요합니다. 최초 빌드는 Kotlin 컴파일러(약 57MB) 등을 내려받으므로 느린 네트워크에서 오래 걸릴 수 있으며, 시간 초과를 막기 위해 `android/gradle.properties`에서 HTTP 제한 시간을 늘려 두었습니다. 기본 경로가 다르면 `JAVA_HOME`, `ANDROID_HOME`을 지정하세요.
 
 ```powershell
 npm ci
